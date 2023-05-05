@@ -1,0 +1,137 @@
+require('dotenv').config();
+const Discord = require('discord.js');
+
+const https = require('https');
+
+const translate = require('@apteryxxyz/html-translator');
+
+let citateInit = import('./citate/citate.mjs');
+
+let citate = []
+
+citateInit.then((res) => {
+    // console.log(res)
+    res.default.forEach(element => {
+        // console.log(element)
+        citate.push(element)
+    });
+})
+
+const client = new Discord.Client({ intents: ["Guilds", "GuildMessages", "MessageContent"] });
+
+client.on('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+});
+
+const prefix = '!'
+
+function generateText(cit) {
+    cit.text = cit.text.filter(item => !item.includes('<table'))
+    let i = Math.floor(Math.random() * (cit.text.length));
+    let res = ''
+    let res2 = cit.text[i]
+    while (res2.length < 1000 && i < cit.text.length) {
+        res = res + cit.text[i]
+        res2 = res2 + cit.text[i + 1]
+        i += 1
+    }
+
+    let find = '<blockquote>'
+    let re = new RegExp(find, 'g')
+    res = res.replace(re, '<blockquote> > ')
+    find = '<p>\xa0</p>'
+    re = new RegExp(find, 'g')
+    res = res.replace(re, '')
+    find = '<br/>'
+    re = new RegExp(find, 'g')
+    res = res.replace(re, '</p><p>')
+    find = '<p[^>]*>'
+    re = new RegExp(find, 'g')
+    res = res.replace(re, '<p> > ')
+    if (res == '') {
+        return ''
+    }
+    res = res.replace(/<a.+<\/a>/, '')
+    res = res + addInfo(cit)
+    return res
+}
+
+function generateCit(cit) {
+    res = cit.text
+
+    let find = '<blockquote>'
+    let re = new RegExp(find, 'g')
+    res = res.replace(re, '<blockquote> > ')
+    find = '<p>&#160;</p>'
+    re = new RegExp(find, 'g')
+    res = res.replace(re, '')
+    find = '<br/>'
+    re = new RegExp(find, 'g')
+    res = res.replace(re, '</p><p>')
+    find = '<p[^>]*>'
+    re = new RegExp(find, 'g')
+    res = res.replace(re, '<p> > ')
+    if (res == '') {
+        return ''
+    }
+    res = res.replace(/<a.+<\/a>/, '')
+    res = res + addInfo(cit)
+    return res
+}
+
+function addInfo(cit) {
+    // console.log('\n*' + cit.autor + ' - ' + cit.titlu + '*\n' + cit.link)
+    return '<p><b>' + cit.autor + ' — ' + cit.titlu.replace('<br/>', ' ') + '</b></p><p>https://levosro.github.io' + cit.link.substring(1) + '</p>'
+}
+
+function generate(citate) {
+    let number = Math.floor(Math.random() * citate.length);
+    let cit = citate[number]
+    let res = ''
+    if (cit.isText) {
+        while (res == '' || res.length > 2000) { res = generateText(cit) }
+    }
+    else {
+        while (res == '') { res = generateCit(cit) }
+
+        while (res.length > 2000) {
+            let number = Math.floor(Math.random() * citate.length);
+            cit = citate[number]
+            let res = ''
+            if (cit.isText) {
+                while (res == '' || res.length > 2000) { res = generateText(cit) }
+            }
+            else {
+                while (res == '') { res = generateCit(cit) }
+            }
+        }
+
+    }
+
+    let { markdown, images } = translate(res);
+    return markdown;
+}
+
+client.on('messageCreate', function (msg) {
+    if (msg.author.bot) return;
+    console.log(msg.content)
+    if (!msg.content.startsWith(prefix)) return;
+    const commandBody = msg.content.slice(prefix.length);
+    const args = commandBody.split(' ');
+    const command = args.shift().toLowerCase();
+    if (command == 'cit') {
+
+        // console.log(markdown)
+        msg.reply(generate(citate))
+    }
+    else {
+        citateFiltered = citate.filter(item => item.autor.toLowerCase().includes(command) || item.img.toLowerCase().includes(command))
+        if (citateFiltered.length == 0) {
+            msg.reply('Nu avem texte de la autorul cerut.')
+        }
+        else { msg.reply(generate(citateFiltered)) }
+    }
+});
+
+//make sure this line is the last line
+client.login(process.env.TOKEN);
