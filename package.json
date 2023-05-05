@@ -10,5 +10,19 @@
   },
   "scripts": {
     "nodemon": "nodemon index.js"
-  }
+  },
+  "name": "melbotnode",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/levosro/CommBotNode.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/levosro/CommBotNode/issues"
+  },
+  "homepage": "https://github.com/levosro/CommBotNode#readme",
+  "description": ""
 }
