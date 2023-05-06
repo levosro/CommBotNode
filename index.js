@@ -48,7 +48,7 @@ function generateText(cit) {
     find = '<p[^>]*>'
     re = new RegExp(find, 'g')
     res = res.replace(re, '<p> > ')
-    if (res == '') {
+    if (res.length < 500) {
         return ''
     }
     res = res.replace(/<a.+<\/a>/, '')
@@ -123,6 +123,21 @@ client.on('messageCreate', function (msg) {
 
         // console.log(markdown)
         msg.reply(generate(citate))
+    }
+    else if (command == 'autor') {
+        let autori = []
+        for (i in citate) {
+            let cit = citate[i]
+            if (!autori.includes(cit.autor)){
+                autori.push(cit.autor)
+            }
+        }
+        res = ''
+        for (a in autori) {
+            citLen = citate.filter(item => item.autor == autori[a]).length
+            res = res + `${autori[a]} (${citLen} citate)` + '\n'
+        }
+        msg.reply(res)
     }
     else {
         citateFiltered = citate.filter(item => item.autor.toLowerCase().includes(command) || item.img.toLowerCase().includes(command))
