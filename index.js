@@ -1,5 +1,6 @@
 require('dotenv').config();
 const Discord = require('discord.js');
+const keepAlive = require('./server');
 
 const https = require('https');
 
@@ -149,4 +150,5 @@ client.on('messageCreate', function (msg) {
 });
 
 //make sure this line is the last line
-client.login(process.env.TOKEN);
+keepAlive()
+client.login(process.env['TOKEN']);
