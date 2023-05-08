@@ -2,8 +2,6 @@ require('dotenv').config();
 const Discord = require('discord.js');
 const keepAlive = require('./server');
 
-const https = require('https');
-
 const translate = require('@apteryxxyz/html-translator');
 
 let citateInit = import('./citate/citate.mjs');
@@ -52,8 +50,9 @@ function generateText(cit) {
     if (res.length < 500) {
         return ''
     }
+    const result = citText.match(/"(p\d+)"/);
     res = res.replace(/<a.+<\/a>/, '')
-    res = res + addInfo(cit)
+    res = res + addInfo(cit, result[1])
     return res
 }
 
@@ -63,7 +62,7 @@ function generateCit(cit) {
     let find = '<blockquote>'
     let re = new RegExp(find, 'g')
     res = res.replace(re, '<blockquote> > ')
-    find = '<p>&#160;</p>'
+    find = '<p>\xa0</p>'
     re = new RegExp(find, 'g')
     res = res.replace(re, '')
     find = '<br/>'
@@ -80,9 +79,9 @@ function generateCit(cit) {
     return res
 }
 
-function addInfo(cit) {
+function addInfo(cit, place) {
     // console.log('\n*' + cit.autor + ' - ' + cit.titlu + '*\n' + cit.link)
-    return '<p><b>' + cit.autor + ' — ' + cit.titlu.replace('<br/>', ' ') + '</b></p><p>https://levosro.github.io' + cit.link.substring(1) + '</p>'
+    return '<p><b>' + cit.autor + ' — ' + cit.titlu.replace('<br/>', ' ') + '</b></p><p>https://levosro.github.io' + cit.link.substring(1, cit.link.indexOf('#')) + `#${place}</p>`
 }
 
 function generate(citate) {
