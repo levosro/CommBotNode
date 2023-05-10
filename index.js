@@ -50,8 +50,8 @@ function generateText(cit) {
     if (res.length < 500) {
         return ''
     }
-    const result = citText.match(/"(p\d+)"/);
-    res = res.replace(/<a.+<\/a>/, '')
+    const result = res.match(/"(p\d+)"/);
+    res = res.replace(/<a[^<]+<\/a>/g, '')
     res = res + addInfo(cit, result[1])
     return res
 }
@@ -80,8 +80,11 @@ function generateCit(cit) {
 }
 
 function addInfo(cit, place) {
-    // console.log('\n*' + cit.autor + ' - ' + cit.titlu + '*\n' + cit.link)
-    return '<p><b>' + cit.autor + ' — ' + cit.titlu.replace('<br/>', ' ') + '</b></p><p>https://levosro.github.io' + cit.link.substring(1, cit.link.indexOf('#')) + `#${place}</p>`
+  if (cit.isText)
+    {return '<p><b>' + cit.autor + ' — ' + cit.titlu.replace('<br/>', ' ') + '</b></p><p>https://levosro.github.io' + cit.link.substring(1, cit.link.indexOf('#')) + `#${place}</p>`}
+  else {
+    return '<p><b>' + cit.autor + ' — ' + cit.titlu.replace('<br/>', ' ') + '</b></p><p>https://levosro.github.io' + cit.link.substring(1) + `</p>`
+  }
 }
 
 function generate(citate) {
