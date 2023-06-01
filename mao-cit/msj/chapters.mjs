@@ -1,6 +1,6 @@
 export default [
 {'title': 'Cuvânt înainte la ediţia a doua',
-'idCh': '1.0',
+'idCh': '0.1',
 },
 {'title': '1. Partidul comunist',
 'idCh': '1.01',
