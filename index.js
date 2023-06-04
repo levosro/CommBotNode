@@ -17,30 +17,6 @@ async function getTexts(book) {
   return await response.json();
 }
 
-async function getChapters(book) {
-  const { default: fetch } = await import("node-fetch");
-  const response = await fetch(
-    `https://levosro.herokuapp.com/assets/content/${book.link}/chapters.json`
-  );
-  return await response.json();
-}
-
-async function getParts(book) {
-  const { default: fetch } = await import("node-fetch");
-  const response = await fetch(
-    `https://levosro.herokuapp.com/assets/content/${book.link}/parts.json`
-  );
-  return await response.json();
-}
-
-async function getNotes(book) {
-  const { default: fetch } = await import("node-fetch");
-  const response = await fetch(
-    `https://levosro.herokuapp.com/assets/content/${book.link}/notes.json`
-  );
-  return await response.json();
-}
-
 async function getCitate(book) {
   const { default: fetch } = await import("node-fetch");
   const response = await fetch(
@@ -56,25 +32,14 @@ async function initializeBooks(books) {
     books.map(async (item) => {
       const texts = await getTexts(item);
       const citate = await getCitate(item);
-      const chapters = await getChapters(item);
-      const parts = await getParts(item);
-      const notes = await getNotes(item);
 
       item.texts = texts;
       const updatedCitate = citate.map((citat, index) => {
-        // Create a copy of the chapter object to avoid modifying the original object
         const updatedCitat = { ...citat };
-
-        // Assign a growing ID to the updatedChapter object
         updatedCitat.id = index + 1;
-
         return updatedCitat;
       });
       item.citate = updatedCitate;
-      item.chapters = chapters;
-      item.parts =
-        parts.length === 0 ? [{ idPt: "1", title: item.title }] : parts;
-      item.notes = notes;
 
       const title = item.title;
       const book = newBooks.filter((item) => item.title == title)[0];
@@ -268,6 +233,7 @@ client.on("messageCreate", function (msg) {
     let autori = [];
     for (i in citate) {
       let cit = citate[i];
+      
       if (!autori.includes(cit.autor)) {
         autori.push(cit.autor);
       }
