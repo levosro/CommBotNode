@@ -1,52 +1,83 @@
 require("dotenv").config();
+
 const Discord = require("discord.js");
 const keepAlive = require("./server");
 
 const translate = require("@apteryxxyz/html-translator");
 
-let booksInit = import("./books.mjs");
+// let booksInit = import("./books.mjs");
+
+// Import the functions you need from the SDKs you need
+const firebase = require("firebase/app");
+const firestore = require("firebase/firestore");
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC-Vki1OLY0KZfQ-wMBzPNxW9uqJiHbI08",
+  authDomain: "levos-5f2ec.firebaseapp.com",
+  projectId: "levos-5f2ec",
+  storageBucket: "levos-5f2ec.appspot.com",
+  messagingSenderId: "701527711082",
+  appId: "1:701527711082:web:42c61572e95e31400a5913",
+  measurementId: "G-TB2GQCHWC2"
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firestore.getFirestore(app)
 
 let citate = [];
 let books = [];
 
 async function getTexts(book) {
-  const { default: fetch } = await import("node-fetch");
-  const response = await fetch(
-    `https://levosro.herokuapp.com/assets/content/${book.link}/texts.json`
-  );
-  return await response.json();
+  let texts = []
+  const bookRef = await firestore.getDocs(firestore.collection(db, 'content', book.link, 'texts'))
+  bookRef.forEach((text) => {
+    texts.push(text.data())
+  })
+  return texts
 }
 
 async function getCitate(book) {
-  const { default: fetch } = await import("node-fetch");
-  const response = await fetch(
-    `https://levosro.herokuapp.com/assets/content/${book.link}/citate.json`
-  );
-  return await response.json();
+  let citate = []
+  const bookRef = await firestore.getDocs(firestore.collection(db, 'content', book.link, 'citate'))
+  bookRef.forEach((cit) => {
+    citate.push(cit.data())
+  })
+  return citate
 }
 
 async function initializeBooks(books) {
   const newBooks = books;
+  const booksref = await firestore.getDocs(firestore.collection(db, 'books'))
 
-  await Promise.all(
-    books.map(async (item) => {
-      const texts = await getTexts(item);
-      const citate = await getCitate(item);
+  booksref.forEach(async (doc) => {
+    // console.log(doc.id, " => ", doc.data());
 
-      item.texts = texts;
-      const updatedCitate = citate.map((citat, index) => {
-        const updatedCitat = { ...citat };
-        updatedCitat.id = index + 1;
-        return updatedCitat;
-      });
-      item.citate = updatedCitate;
+    item = doc.data()
 
-      const title = item.title;
-      const book = newBooks.filter((item) => item.title == title)[0];
-      const index = newBooks.indexOf(book);
-      newBooks[index] = item;
-    })
-  );
+    const texts = await getTexts(item);
+    const citate = await getCitate(item);
+
+    // console.log(texts)
+
+    item.texts = texts;
+    const updatedCitate = citate.map((citat, index) => {
+      const updatedCitat = { ...citat };
+      updatedCitat.id = index + 1;
+      return updatedCitat;
+    });
+    item.citate = updatedCitate;
+
+    const title = item.title;
+    const book = newBooks.filter((item) => item.title == title)[0];
+    const index = newBooks.indexOf(book);
+    newBooks[index] = item;
+  });
 
   return newBooks;
 }
@@ -233,7 +264,7 @@ client.on("messageCreate", function (msg) {
     let autori = [];
     for (i in citate) {
       let cit = citate[i];
-      
+
       if (!autori.includes(cit.autor)) {
         autori.push(cit.autor);
       }
@@ -259,16 +290,17 @@ client.on("messageCreate", function (msg) {
 });
 
 //make sure this line is the last line
-booksInit.then((res) => {
-  // console.log(res)
-  res.default.forEach((element) => {
-    // console.log(element)
-    books.push(element);
-  });
-  initializeBooks(books).then((data) => {
-    citate = getAllCits(data);
-    // console.log(citate);
-    keepAlive();
-    client.login(process.env["TOKEN"]);
-  });
+
+// booksInit.then((res) => {
+//   // console.log(res)
+//   res.default.forEach((element) => {
+//     // console.log(element)
+//     books.push(element);
+//   });
+initializeBooks(books).then((data) => {
+  citate = getAllCits(data);
+  console.log(citate);
+  keepAlive();
+  client.login(process.env["TOKEN"]);
 });
+// });
