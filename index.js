@@ -51,19 +51,17 @@ async function getCitate(book) {
   return citate
 }
 
-async function initializeBooks(books) {
-  const newBooks = books;
+async function initializeBooks() {
+  const newBooks = [];
   const booksref = await firestore.getDocs(firestore.collection(db, 'books'))
 
-  booksref.forEach(async (doc) => {
+  const bookPromises = booksref.docs.map(async (doc) => {
     // console.log(doc.id, " => ", doc.data());
 
-    item = doc.data()
+    let item = doc.data()
 
     const texts = await getTexts(item);
     const citate = await getCitate(item);
-
-    // console.log(texts)
 
     item.texts = texts;
     const updatedCitate = citate.map((citat, index) => {
@@ -73,20 +71,21 @@ async function initializeBooks(books) {
     });
     item.citate = updatedCitate;
 
-    const title = item.title;
-    const book = newBooks.filter((item) => item.title == title)[0];
-    const index = newBooks.indexOf(book);
-    newBooks[index] = item;
+    newBooks.push(item);
   });
+
+  await Promise.all(bookPromises);
 
   return newBooks;
 }
 
-function getAllCits() {
+
+function getAllCits(books) {
   let d = 0;
 
   const resCit = [];
   books.forEach((book) => {
+    console.log(book)
     if (book.language !== "en") {
       if (!book.title.includes("Citate din scrierile lui")) {
         book.texts.forEach((item) => {
@@ -297,9 +296,10 @@ client.on("messageCreate", function (msg) {
 //     // console.log(element)
 //     books.push(element);
 //   });
-initializeBooks(books).then((data) => {
+initializeBooks().then((data) => {
+  // console.log(data)
   citate = getAllCits(data);
-  console.log(citate);
+  // console.log(citate);
   keepAlive();
   client.login(process.env["TOKEN"]);
 });
